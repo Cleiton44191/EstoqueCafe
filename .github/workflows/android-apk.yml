@@ -35,7 +35,11 @@ jobs:
         # with a NullPointerException in CgroupInfo.getMountPoint() on modern runners.
         env:
           JAVA_TOOL_OPTIONS: -XX:-UseContainerSupport
-        run: mvn -B -Pandroid gluonfx:build gluonfx:package
+        run: |
+          # The runner ships its own preinstalled SDK via ANDROID_SDK_ROOT, which conflicts
+          # with the SDK gluonfx-maven-plugin manages/downloads via ANDROID_HOME.
+          unset ANDROID_SDK_ROOT
+          mvn -B -Pandroid gluonfx:build gluonfx:package
 
       - name: Stage APK
         run: |
