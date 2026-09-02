@@ -12,11 +12,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Sets JAVA_HOME/GRAALVM_HOME to a Gluon-built GraalVM
+      # Sets JAVA_HOME/GRAALVM_HOME to a Gluon-built GraalVM.
+      # Pinned to the version officially supported for Android by gluonfx-maven-plugin
+      # (the "latest" dev build breaks native-image with a ForceNoROSectionRelocations error).
       - name: Setup GraalVM built by Gluon
         uses: gluonhq/setup-graalvm@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          graalvm: '22.1.0.1-Final'
+          jdk: 'java17'
 
       # Required native/desktop libraries used by the GluonFX toolchain on Linux
       - name: Install libraries

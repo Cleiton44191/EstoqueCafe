@@ -12,7 +12,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>21</maven.compiler.release>
+        <!-- JDK 17 matches the officially supported GraalVM build (22.1.0.1-Final) for Android native-image -->
+        <maven.compiler.release>17</maven.compiler.release>
         <javafx.version>21.0.2</javafx.version>
         <gluonfx.version>1.0.29</gluonfx.version>
         <main.class>EstoqueCafeApp</main.class>
