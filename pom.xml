@@ -61,6 +61,7 @@
                 <configuration>
                     <mainClass>${main.class}</mainClass>
                     <appIdentifier>br.com.estoquecafe.app</appIdentifier>
+                    <verbose>true</verbose>
                     <releaseConfiguration>
                         <appLabel>Estoque Cafe</appLabel>
                         <versionCode>1</versionCode>
