@@ -1,0 +1,40 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Sets JAVA_HOME/GRAALVM_HOME to a Gluon-built GraalVM
+      - name: Setup GraalVM built by Gluon
+        uses: gluonhq/setup-graalvm@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Required native/desktop libraries used by the GluonFX toolchain on Linux
+      - name: Install libraries
+        run: |
+          sudo apt-get update
+          sudo apt install -y libasound2-dev libavcodec-dev libavformat-dev libavutil-dev libgl-dev libgtk-3-dev libpango1.0-dev libxtst-dev
+
+      # Android SDK/NDK are downloaded and configured automatically by the gluonfx plugin
+      - name: Gluon Build (compile + link + package APK)
+        run: mvn -B -Pandroid gluonfx:build gluonfx:package
+
+      - name: Stage APK
+        run: |
+          mkdir -p staging
+          cp target/gluonfx/aarch64-android/gvm/*.apk staging/
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: estoque-cafe-apk
+          path: staging/*.apk

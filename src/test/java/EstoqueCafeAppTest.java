@@ -1,8 +1,8 @@
+import java.time.LocalDate;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 class EstoqueCafeAppTest {
@@ -67,59 +67,5 @@ class EstoqueCafeAppTest {
 
         assertFalse(removido);
         assertEquals(4.0, produto.getQuantidade());
-    }
-
-    @Test
-    void estoqueBaixoDeveSerVerdadeiroQuandoQuantidadeAtingeMinimo() {
-        EstoqueCafeApp.Produto produto = new EstoqueCafeApp.Produto(
-                4,
-                "Fungicida",
-                EstoqueCafeApp.Categoria.FUNGICIDA,
-                "Azoxistrobina",
-                "Solução Rural",
-                "MAPA-321",
-                "Kg",
-                5.0,
-                5.0,
-                LocalDate.now().plusDays(45)
-        );
-
-        assertTrue(produto.estoqueBaixo());
-    }
-
-    @Test
-    void vencidoDeveSerVerdadeiroQuandoDataJaPassou() {
-        EstoqueCafeApp.Produto produto = new EstoqueCafeApp.Produto(
-                5,
-                "Biológico",
-                EstoqueCafeApp.Categoria.BIOLOGICO,
-                "Trichoderma",
-                "BioAgrícola",
-                "MAPA-654",
-                "Kg",
-                10.0,
-                2.0,
-                LocalDate.now().minusDays(1)
-        );
-
-        assertTrue(produto.vencido());
-    }
-
-    @Test
-    void venceEmBreveDeveSerVerdadeiroQuandoFaltaMenosDe90Dias() {
-        EstoqueCafeApp.Produto produto = new EstoqueCafeApp.Produto(
-                6,
-                "Acaricida",
-                EstoqueCafeApp.Categoria.ACARICIDA,
-                "Abamectina",
-                "Protege",
-                "MAPA-987",
-                "L",
-                12.0,
-                2.0,
-                LocalDate.now().plusDays(45)
-        );
-
-        assertTrue(produto.venceEmBreve());
     }
 }

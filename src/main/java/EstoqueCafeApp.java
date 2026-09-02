@@ -5,20 +5,14 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -43,24 +37,23 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 public class EstoqueCafeApp extends Application {
 
     private static final String ARQUIVO = "estoque_cafe.dat";
-    private static final DateTimeFormatter FORMATO_DATA =
-            DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
     private static final String ARQUIVO_FORMULAS = "formulas_cafe.dat";
+    private static final String PASTA_DADOS = ".estoque-cafe";
 
-    private final ObservableList<Produto> estoque =
-            FXCollections.observableArrayList();
-    private final ObservableList<Formula> formulas =
-            FXCollections.observableArrayList();
+    private final ObservableList<Produto> estoque = FXCollections.observableArrayList();
+    private final ObservableList<Formula> formulas = FXCollections.observableArrayList();
 
     private TableView<Produto> tabela;
     private TextField campoPesquisa;
@@ -78,144 +71,35 @@ public class EstoqueCafeApp extends Application {
     }
 
     public static class Produto implements Serializable {
-
         private static final long serialVersionUID = 1L;
 
         private int id;
         private String nome;
-        private Categoria categoria;
-        private String ingredienteAtivo;
-        private String fabricante;
-        private String registroMapa;
-        private String unidade;
+        private Categoria categoria; 
         private double quantidade;
-        private double estoqueMinimo;
-        private LocalDate validade;
 
-        public Produto(
-                int id,
-                String nome,
-                Categoria categoria,
-                String ingredienteAtivo,
-                String fabricante,
-                String registroMapa,
-                String unidade,
-                double quantidade,
-                double estoqueMinimo,
-                LocalDate validade
-        ) {
+        public Produto(int id, String nome, Categoria categoria, double quantidade) {
             this.id = id;
             this.nome = nome;
             this.categoria = categoria;
-            this.ingredienteAtivo = ingredienteAtivo;
-            this.fabricante = fabricante;
-            this.registroMapa = registroMapa;
-            this.unidade = unidade;
-            this.quantidade = quantidade;
-            this.estoqueMinimo = estoqueMinimo;
-            this.validade = validade;
-        }
-
-        public int getId() {
-            return id;
-        }
-
-        public String getNome() {
-            return nome;
-        }
-
-        public Categoria getCategoria() {
-            return categoria;
-        }
-
-        public String getIngredienteAtivo() {
-            return ingredienteAtivo;
-        }
-
-        public String getFabricante() {
-            return fabricante;
-        }
-
-        public String getRegistroMapa() {
-            return registroMapa;
-        }
-
-        public String getUnidade() {
-            return unidade;
-        }
-
-        public double getQuantidade() {
-            return quantidade;
-        }
-
-        public double getEstoqueMinimo() {
-            return estoqueMinimo;
-        }
-
-        public LocalDate getValidade() {
-            return validade;
-        }
-
-        public void setNome(String nome) {
-            this.nome = nome;
-        }
-
-        public void setCategoria(Categoria categoria) {
-            this.categoria = categoria;
-        }
-
-        public void setIngredienteAtivo(String ingredienteAtivo) {
-            this.ingredienteAtivo = ingredienteAtivo;
-        }
-
-        public void setFabricante(String fabricante) {
-            this.fabricante = fabricante;
-        }
-
-        public void setRegistroMapa(String registroMapa) {
-            this.registroMapa = registroMapa;
-        }
-
-        public void setUnidade(String unidade) {
-            this.unidade = unidade;
-        }
-
-        public void setQuantidade(double quantidade) {
             this.quantidade = quantidade;
         }
 
-        public void setEstoqueMinimo(double estoqueMinimo) {
-            this.estoqueMinimo = estoqueMinimo;
-        }
+        public int getId() { return id; }
+        public String getNome() { return nome; }
+        public Categoria getCategoria() { return categoria; }
+        public double getQuantidade() { return quantidade; }
 
-        public void setValidade(LocalDate validade) {
-            this.validade = validade;
-        }
+        public void setNome(String nome) { this.nome = nome; }
+        public void setCategoria(Categoria categoria) { this.categoria = categoria; }
+        public void setQuantidade(double quantidade) { this.quantidade = quantidade; }
 
-        public void adicionarQuantidade(double valor) {
-            quantidade += valor;
-        }
+        public void adicionarQuantidade(double valor) { quantidade += valor; }
 
         public boolean removerQuantidade(double valor) {
-            if (valor <= 0 || valor > quantidade) {
-                return false;
-            }
-
+            if (valor <= 0 || valor > quantidade) return false;
             quantidade -= valor;
             return true;
-        }
-
-        public boolean estoqueBaixo() {
-            return quantidade <= estoqueMinimo;
-        }
-
-        public boolean vencido() {
-            return validade.isBefore(LocalDate.now());
-        }
-
-        public boolean venceEmBreve() {
-            LocalDate limite = LocalDate.now().plusDays(90);
-            return !vencido() && !validade.isAfter(limite);
         }
     }
 
@@ -235,7 +119,6 @@ public class EstoqueCafeApp extends Application {
         public int getProdutoId() { return produtoId; }
         public String getProdutoNome() { return produtoNome; }
         public double getQuantidade() { return quantidade; }
-
         public void setProdutoId(int produtoId) { this.produtoId = produtoId; }
         public void setProdutoNome(String produtoNome) { this.produtoNome = produtoNome; }
         public void setQuantidade(double quantidade) { this.quantidade = quantidade; }
@@ -257,41 +140,45 @@ public class EstoqueCafeApp extends Application {
         public int getId() { return id; }
         public String getNome() { return nome; }
         public List<IngredienteFormula> getIngredientes() { return ingredientes; }
-
         public void setNome(String nome) { this.nome = nome; }
-
-        public void adicionarIngrediente(IngredienteFormula ingrediente) {
-            ingredientes.add(ingrediente);
-        }
-
-        public void removerIngrediente(IngredienteFormula ingrediente) {
-            ingredientes.remove(ingrediente);
-        }
+        public void adicionarIngrediente(IngredienteFormula ingrediente) { ingredientes.add(ingrediente); }
+        public void removerIngrediente(IngredienteFormula ingrediente) { ingredientes.remove(ingrediente); }
     }
 
     @Override
     public void start(Stage stage) {
-        carregarEstoque();
-        carregarFormulas();
+        try {
+            carregarEstoque();
+            carregarFormulas();
 
-        BorderPane raiz = new BorderPane();
-        raiz.getStyleClass().add("root");
+            BorderPane raiz = new BorderPane();
+            raiz.getStyleClass().add("root");
+            raiz.setTop(criarCabecalho());
+            raiz.setCenter(criarConteudo());
 
-        raiz.setTop(criarCabecalho());
-        raiz.setCenter(criarConteudo());
+            Scene cena = new Scene(raiz, 1200, 720);
 
-        Scene cena = new Scene(raiz, 1200, 720);
-        cena.getStylesheets().add(
-                Objects.requireNonNull(
-                        getClass().getResource("/estilo.css")
-                ).toExternalForm()
-        );
+            var css = getClass().getResource("/estilo.css");
+            if (css != null) {
+                cena.getStylesheets().add(css.toExternalForm());
+            }
 
-        stage.setTitle("Estoque de Produtos - Café");
-        stage.setMinWidth(700);
-        stage.setMinHeight(500);
-        stage.setScene(cena);
-        stage.show();
+            stage.setTitle("Estoque de Produtos - Café");
+            // Minimos baixos para nao quebrar o layout em telas de celular (retrato/paisagem)
+            stage.setMinWidth(320);
+            stage.setMinHeight(400);
+            stage.setScene(cena);
+
+            stage.setOnCloseRequest(e -> {
+                salvarEstoque();
+                salvarFormulas();
+            });
+
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            mostrarErro("Erro ao iniciar a aplicação.\n" + e.getMessage());
+        }
     }
 
     private VBox criarCabecalho() {
@@ -302,26 +189,29 @@ public class EstoqueCafeApp extends Application {
         container.getStyleClass().add("cabecalho");
         container.setPadding(new Insets(15));
         container.setAlignment(Pos.CENTER_LEFT);
-
         return container;
     }
 
-    private VBox criarConteudo() {
-        HBox controles = criarControles();
+    private ScrollPane criarConteudo() {
+        FlowPane controles = criarControles();
         tabela = criarTabela();
 
-        VBox conteudo = new VBox(controles, tabela);
+        VBox conteudo = new VBox(10, controles, tabela);
         VBox.setVgrow(tabela, Priority.ALWAYS);
 
-        return conteudo;
+        ScrollPane rolagem = new ScrollPane(conteudo);
+        rolagem.setFitToWidth(true);
+        rolagem.setFitToHeight(true);
+        return rolagem;
     }
 
-    private HBox criarControles() {
+    private FlowPane criarControles() {
         campoPesquisa = new TextField();
         campoPesquisa.setPromptText("Pesquisar produto...");
-        campoPesquisa.textProperty().addListener((obs, antigo, novo) ->
-                atualizarTabela()
-        );
+        campoPesquisa.setMinWidth(180);
+        campoPesquisa.setPrefWidth(240);
+        campoPesquisa.setMaxWidth(Double.MAX_VALUE);
+        campoPesquisa.textProperty().addListener((obs, antigo, novo) -> atualizarTabela());
 
         Button cadastrar = new Button("Novo produto");
         cadastrar.getStyleClass().add("botao-principal");
@@ -335,9 +225,9 @@ public class EstoqueCafeApp extends Application {
         saida.getStyleClass().add("botao-vermelho");
         saida.setOnAction(e -> registrarSaida());
 
-        Button formulas = new Button("Fórmulas");
-        formulas.getStyleClass().add("botao-secundario");
-        formulas.setOnAction(e -> gerenciarFormulas());
+        Button formulasBtn = new Button("Fórmulas");
+        formulasBtn.getStyleClass().add("botao-secundario");
+        formulasBtn.setOnAction(e -> gerenciarFormulas());
 
         Button salvar = new Button("Salvar");
         salvar.getStyleClass().add("botao-secundario");
@@ -347,20 +237,19 @@ public class EstoqueCafeApp extends Application {
             mostrarMensagem("Dados salvos com sucesso.");
         });
 
-        HBox controles = new HBox(
+        FlowPane controles = new FlowPane(
+                10,
                 10,
                 campoPesquisa,
                 cadastrar,
                 entrada,
                 saida,
-                formulas,
+                formulasBtn,
                 salvar
         );
 
         controles.setPadding(new Insets(10, 20, 15, 20));
         controles.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(campoPesquisa, Priority.ALWAYS);
-
         return controles;
     }
 
@@ -376,25 +265,19 @@ public class EstoqueCafeApp extends Application {
         TableColumn<Produto, String> nome = new TableColumn<>("Produto");
         nome.setCellValueFactory(new PropertyValueFactory<>("nome"));
 
-        TableColumn<Produto, Categoria> categoria =
-                new TableColumn<>("Categoria");
-        categoria.setCellValueFactory(
-                new PropertyValueFactory<>("categoria")
-        );
+        TableColumn<Produto, Categoria> categoria = new TableColumn<>("Categoria");
+        categoria.setCellValueFactory(new PropertyValueFactory<>("categoria"));
 
-        TableColumn<Produto, String> quantidade =
-                new TableColumn<>("Quantidade (L)");
-        quantidade.setCellValueFactory(celula -> {
-            Produto produto = celula.getValue();
-            return javafx.beans.binding.Bindings.createStringBinding(
-                () -> String.format(Locale.US, "%.2f L", produto.getQuantidade())
-            );
-        });
+        TableColumn<Produto, String> quantidade = new TableColumn<>("Quantidade (L)");
+        quantidade.setCellValueFactory(celula -> Bindings.createStringBinding(
+                () -> String.format(Locale.US, "%.2f L", celula.getValue().getQuantidade())
+        ));
         quantidade.setPrefWidth(120);
 
-        TableColumn<Produto, Void> acoes =
-                new TableColumn<>("Ações");
-
+        TableColumn<Produto, Void> acoes = new TableColumn<>("Ações");
+        acoes.setMinWidth(110);
+        acoes.setPrefWidth(140);
+        acoes.setMaxWidth(160);
         acoes.setCellFactory(coluna -> new TableCell<>() {
             private final Button editar = new Button("Editar");
             private final Button excluir = new Button("Excluir");
@@ -403,23 +286,14 @@ public class EstoqueCafeApp extends Application {
             {
                 editar.getStyleClass().add("botao-editar");
                 excluir.getStyleClass().add("botao-excluir");
-
                 editar.setOnAction(e -> {
-                    Produto produto = getTableView()
-                            .getItems()
-                            .get(getIndex());
-
+                    Produto produto = getTableView().getItems().get(getIndex());
                     abrirFormulario(produto);
                 });
-
                 excluir.setOnAction(e -> {
-                    Produto produto = getTableView()
-                            .getItems()
-                            .get(getIndex());
-
+                    Produto produto = getTableView().getItems().get(getIndex());
                     removerProduto(produto);
                 });
-
                 painel.setAlignment(Pos.CENTER);
             }
 
@@ -430,62 +304,32 @@ public class EstoqueCafeApp extends Application {
             }
         });
 
-        novaTabela.getColumns().addAll(
-                id,
-                nome,
-                categoria,
-                quantidade,
-                acoes
-        );
-
+        novaTabela.getColumns().addAll(id, nome, categoria, quantidade, acoes);
         return novaTabela;
     }
 
     private void atualizarTabela() {
-        String termo = campoPesquisa.getText() == null
-                ? ""
-                : campoPesquisa.getText().toLowerCase();
-
-        tabela.setItems(
-                estoque.filtered(produto -> {
-                    return termo.isBlank()
-                                    || produto.getNome()
-                                    .toLowerCase()
-                                    .contains(termo);
-                })
-        );
+        String termo = campoPesquisa.getText() == null ? "" : campoPesquisa.getText().toLowerCase();
+        tabela.setItems(estoque.filtered(produto -> termo.isBlank() || produto.getNome().toLowerCase().contains(termo)));
     }
 
     private void abrirFormulario(Produto produtoExistente) {
         boolean editando = produtoExistente != null;
-
         Dialog<ButtonType> dialogo = new Dialog<>();
-        dialogo.setTitle(editando
-                ? "Editar produto"
-                : "Novo produto");
+        dialogo.setTitle(editando ? "Editar produto" : "Novo produto");
 
-        ButtonType confirmar = new ButtonType(
-                editando ? "Salvar alterações" : "Cadastrar",
-                ButtonBar.ButtonData.OK_DONE
-        );
-
-        dialogo.getDialogPane().getButtonTypes().addAll(
-                confirmar,
-                ButtonType.CANCEL
-        );
+        ButtonType confirmar = new ButtonType(editando ? "Salvar alterações" : "Cadastrar", ButtonBar.ButtonData.OK_DONE);
+        dialogo.getDialogPane().getButtonTypes().addAll(confirmar, ButtonType.CANCEL);
 
         TextField nome = new TextField();
         TextField quantidade = new TextField();
-
         ComboBox<Categoria> categoria = new ComboBox<>();
         categoria.getItems().addAll(Categoria.values());
 
         if (editando) {
             nome.setText(produtoExistente.getNome());
             categoria.setValue(produtoExistente.getCategoria());
-            quantidade.setText(String.valueOf(
-                    produtoExistente.getQuantidade()
-            ));
+            quantidade.setText(String.valueOf(produtoExistente.getQuantidade()));
         }
 
         GridPane formulario = new GridPane();
@@ -493,136 +337,91 @@ public class EstoqueCafeApp extends Application {
         formulario.setVgap(10);
         formulario.setPadding(new Insets(20));
 
+        ColumnConstraints c1 = new ColumnConstraints();
+        c1.setMinWidth(140);
+        ColumnConstraints c2 = new ColumnConstraints();
+        c2.setHgrow(Priority.ALWAYS);
+        c2.setFillWidth(true);
+        formulario.getColumnConstraints().addAll(c1, c2);
+
         adicionarCampo(formulario, "Nome comercial:", nome, 0);
         adicionarCampo(formulario, "Categoria:", categoria, 1);
         adicionarCampo(formulario, "Quantidade:", quantidade, 2);
 
         dialogo.getDialogPane().setContent(formulario);
 
-        Node botaoConfirmar =
-                dialogo.getDialogPane().lookupButton(confirmar);
+        Node botaoConfirmar = dialogo.getDialogPane().lookupButton(confirmar);
+        botaoConfirmar.addEventFilter(javafx.event.ActionEvent.ACTION, evento -> {
+            try {
+                validarFormulario(nome, categoria, quantidade);
+            } catch (IllegalArgumentException erro) {
+                mostrarErro(erro.getMessage());
+                evento.consume();
+            }
+        });
 
-        botaoConfirmar.addEventFilter(
-                javafx.event.ActionEvent.ACTION,
-                evento -> {
-                    try {
-                        validarFormulario(nome, categoria, quantidade);
-                    } catch (IllegalArgumentException erro) {
-                        mostrarErro(erro.getMessage());
-                        evento.consume();
-                    }
-                }
-        );
-
-        dialogo.setResultConverter(botao ->
-                botao == confirmar ? confirmar : null
-        );
-
+        dialogo.setResultConverter(botao -> botao == confirmar ? confirmar : null);
         Optional<ButtonType> resultado = dialogo.showAndWait();
 
         if (resultado.isPresent() && resultado.get() == confirmar) {
             try {
                 String nomeValor = nome.getText().trim();
                 Categoria categoriaValor = categoria.getValue();
-                double quantidadeValor = converterDouble(
-                        quantidade.getText()
-                );
+                double quantidadeValor = converterDouble(quantidade.getText());
 
                 if (editando) {
                     produtoExistente.setNome(nomeValor);
                     produtoExistente.setCategoria(categoriaValor);
                     produtoExistente.setQuantidade(quantidadeValor);
                 } else {
-                    estoque.add(new Produto(
-                            proximoId(),
-                            nomeValor,
-                            categoriaValor,
-                            "",
-                            "",
-                            "",
-                            "unidade",
-                            quantidadeValor,
-                            0,
-                            LocalDate.now().plusYears(1)
-                    ));
+                    estoque.add(new Produto(proximoId(), nomeValor, categoriaValor, quantidadeValor));
                 }
 
                 salvarEstoque();
                 atualizarTabela();
-
             } catch (Exception erro) {
                 mostrarErro("Não foi possível salvar o produto.");
             }
         }
     }
 
-    private void adicionarCampo(
-            GridPane painel,
-            String texto,
-            Control campo,
-            int linha
-    ) {
+    private void adicionarCampo(GridPane painel, String texto, Control campo, int linha) {
         Label label = new Label(texto);
         label.getStyleClass().add("label-formulario");
-
         painel.add(label, 0, linha);
         painel.add(campo, 1, linha);
-
         GridPane.setHgrow(campo, Priority.ALWAYS);
-
         if (campo instanceof TextInputControl entrada) {
-            entrada.setPrefWidth(350);
+            entrada.setMaxWidth(Double.MAX_VALUE);
         } else {
-            campo.setPrefWidth(350);
+            campo.setMaxWidth(Double.MAX_VALUE);
         }
     }
 
-    private void validarFormulario(
-            TextField nome,
-            ComboBox<Categoria> categoria,
-            TextField quantidade
-    ) {
+    private void validarFormulario(TextField nome, ComboBox<Categoria> categoria, TextField quantidade) {
         if (nome.getText().isBlank()) {
-            throw new IllegalArgumentException(
-                    "Preencha o nome do produto."
-            );
+            throw new IllegalArgumentException("Preencha o nome do produto.");
         }
-
         if (categoria.getValue() == null) {
-            throw new IllegalArgumentException(
-                    "Selecione uma categoria."
-            );
+            throw new IllegalArgumentException("Selecione uma categoria.");
         }
-
-        double quantidadeValor = converterDouble(
-                quantidade.getText()
-        );
-
+        double quantidadeValor = converterDouble(quantidade.getText());
         if (quantidadeValor < 0) {
-            throw new IllegalArgumentException(
-                    "A quantidade não pode ser negativa."
-            );
+            throw new IllegalArgumentException("A quantidade não pode ser negativa.");
         }
     }
 
     private double converterDouble(String texto) {
         try {
-            return Double.parseDouble(
-                    texto.trim().replace(",", ".")
-            );
+            return Double.parseDouble(texto.trim().replace(",", "."));
         } catch (NumberFormatException erro) {
-            throw new IllegalArgumentException(
-                    "Digite valores numéricos válidos."
-            );
+            throw new IllegalArgumentException("Digite valores numéricos válidos.");
         }
     }
 
     private void registrarEntrada() {
         Produto produto = produtoSelecionado();
-
-        if (produto == null) {
-            return;
-        }
+        if (produto == null) return;
 
         TextInputDialog dialogo = new TextInputDialog();
         dialogo.setTitle("Entrada de estoque");
@@ -631,31 +430,19 @@ public class EstoqueCafeApp extends Application {
         dialogo.getEditor().setPrefWidth(200);
 
         Optional<String> resultado = dialogo.showAndWait();
-
         resultado.ifPresent(valor -> {
             if (valor.trim().isEmpty()) {
                 mostrarErro("Informe uma quantidade");
                 return;
             }
-
             try {
                 double quantidade = converterDouble(valor);
-
-                if (quantidade <= 0) {
-                    throw new IllegalArgumentException(
-                            "A quantidade deve ser maior que zero."
-                    );
-                }
-
+                if (quantidade <= 0) throw new IllegalArgumentException("A quantidade deve ser maior que zero.");
                 produto.adicionarQuantidade(quantidade);
                 salvarEstoque();
-                
-                Platform.runLater(() -> {
-                    tabela.refresh();
-                    atualizarTabela();
-                    mostrarMensagem("Entrada registrada: +" + String.format("%.2f", quantidade) + " L");
-                });
-
+                tabela.refresh();
+                atualizarTabela();
+                mostrarMensagem("Entrada registrada: +" + String.format(Locale.US, "%.2f", quantidade) + " L");
             } catch (IllegalArgumentException erro) {
                 mostrarErro(erro.getMessage());
             }
@@ -664,10 +451,7 @@ public class EstoqueCafeApp extends Application {
 
     private void registrarSaida() {
         Produto produto = produtoSelecionado();
-
-        if (produto == null) {
-            return;
-        }
+        if (produto == null) return;
 
         TextInputDialog dialogo = new TextInputDialog();
         dialogo.setTitle("Saída de estoque");
@@ -676,37 +460,21 @@ public class EstoqueCafeApp extends Application {
         dialogo.getEditor().setPrefWidth(200);
 
         Optional<String> resultado = dialogo.showAndWait();
-
         resultado.ifPresent(valor -> {
             if (valor.trim().isEmpty()) {
                 mostrarErro("Informe uma quantidade");
                 return;
             }
-
             try {
                 double quantidade = converterDouble(valor);
-
-                if (quantidade <= 0) {
-                    throw new IllegalArgumentException(
-                            "A quantidade deve ser maior que zero."
-                    );
-                }
-
+                if (quantidade <= 0) throw new IllegalArgumentException("A quantidade deve ser maior que zero.");
                 if (!produto.removerQuantidade(quantidade)) {
-                    throw new IllegalArgumentException(
-                            "Estoque insuficiente. Disponível: " + 
-                            String.format("%.2f", produto.getQuantidade() + quantidade) + " L"
-                    );
+                    throw new IllegalArgumentException("Estoque insuficiente. Disponível: " + String.format(Locale.US, "%.2f", produto.getQuantidade() + quantidade) + " L");
                 }
-
                 salvarEstoque();
-                
-                Platform.runLater(() -> {
-                    tabela.refresh();
-                    atualizarTabela();
-                    mostrarMensagem("Saída registrada: -" + String.format("%.2f", quantidade) + " L");
-                });
-
+                tabela.refresh();
+                atualizarTabela();
+                mostrarMensagem("Saída registrada: -" + String.format(Locale.US, "%.2f", quantidade) + " L");
             } catch (IllegalArgumentException erro) {
                 mostrarErro(erro.getMessage());
             }
@@ -714,35 +482,20 @@ public class EstoqueCafeApp extends Application {
     }
 
     private Produto produtoSelecionado() {
-        Produto produto = tabela.getSelectionModel()
-                .getSelectedItem();
-
+        Produto produto = tabela.getSelectionModel().getSelectedItem();
         if (produto == null) {
-            mostrarErro(
-                    "Selecione um produto na tabela primeiro."
-            );
+            mostrarErro("Selecione um produto na tabela primeiro.");
         }
-
         return produto;
     }
 
     private void removerProduto(Produto produto) {
-        Alert alerta = new Alert(
-                Alert.AlertType.CONFIRMATION,
-                "Deseja remover o produto \""
-                        + produto.getNome()
-                        + "\"?",
-                ButtonType.YES,
-                ButtonType.NO
-        );
-
+        Alert alerta = new Alert(Alert.AlertType.CONFIRMATION, "Deseja remover o produto \"" + produto.getNome() + "\"?", ButtonType.YES, ButtonType.NO);
         alerta.setTitle("Confirmar remoção");
         alerta.setHeaderText("Remover produto");
 
         Optional<ButtonType> resposta = alerta.showAndWait();
-
-        if (resposta.isPresent()
-                && resposta.get() == ButtonType.YES) {
+        if (resposta.isPresent() && resposta.get() == ButtonType.YES) {
             estoque.remove(produto);
             salvarEstoque();
             atualizarTabela();
@@ -750,16 +503,24 @@ public class EstoqueCafeApp extends Application {
     }
 
     private int proximoId() {
-        return estoque.stream()
-                .mapToInt(Produto::getId)
-                .max()
-                .orElse(0) + 1;
+        return estoque.stream().mapToInt(Produto::getId).max().orElse(0) + 1;
+    }
+
+    private File diretorioDados() {
+        String home = System.getProperty("user.home");
+        File pasta = new File(home, PASTA_DADOS);
+        if (!pasta.exists() && !pasta.mkdirs()) {
+            throw new IllegalStateException("Não foi possível criar a pasta de dados da aplicação.");
+        }
+        return pasta;
+    }
+
+    private File arquivoDados(String nome) {
+        return new File(diretorioDados(), nome);
     }
 
     private void salvarEstoque() {
-        try (ObjectOutputStream saida =
-                     new ObjectOutputStream(
-                             new FileOutputStream(ARQUIVO))) {
+        try (ObjectOutputStream saida = new ObjectOutputStream(new FileOutputStream(arquivoDados(ARQUIVO)))) {
             saida.writeObject(new ArrayList<>(estoque));
         } catch (IOException erro) {
             mostrarErro("Erro ao salvar os dados.");
@@ -768,55 +529,47 @@ public class EstoqueCafeApp extends Application {
 
     @SuppressWarnings("unchecked")
     private void carregarEstoque() {
-        File arquivo = new File(ARQUIVO);
-
-        if (!arquivo.exists()) {
-            return;
-        }
-
-        try (ObjectInputStream entrada =
-                     new ObjectInputStream(
-                             new FileInputStream(arquivo))) {
-
-            List<Produto> dados =
-                    (List<Produto>) entrada.readObject();
-
+        File arquivo = arquivoDados(ARQUIVO);
+        if (!arquivo.exists()) return;
+        try (ObjectInputStream entrada = new ObjectInputStream(new FileInputStream(arquivo))) {
+            List<Produto> dados = (List<Produto>) entrada.readObject();
             estoque.setAll(dados);
-
         } catch (IOException | ClassNotFoundException erro) {
             mostrarErro("Não foi possível carregar os dados salvos.");
         }
     }
 
     private void mostrarMensagem(String mensagem) {
-        Alert alerta = new Alert(
-                Alert.AlertType.INFORMATION,
-                mensagem,
-                ButtonType.OK
-        );
-
+        Alert alerta = new Alert(Alert.AlertType.INFORMATION, mensagem, ButtonType.OK);
         alerta.setTitle("Estoque Café");
         alerta.setHeaderText(null);
         alerta.showAndWait();
     }
 
     private void mostrarErro(String mensagem) {
-        Alert alerta = new Alert(
-                Alert.AlertType.ERROR,
-                mensagem,
-                ButtonType.OK
-        );
-
+        Alert alerta = new Alert(Alert.AlertType.ERROR, mensagem, ButtonType.OK);
         alerta.setTitle("Atenção");
         alerta.setHeaderText(null);
-        alerta.showAndWait();
+        if (Platform.isFxApplicationThread()) {
+            alerta.showAndWait();
+        } else {
+            Platform.runLater(alerta::showAndWait);
+        }
+    }
+
+    // Limita o tamanho preferido ao espaco disponivel na tela, para caber em celulares (retrato/paisagem)
+    private double larguraDialogo(double preferida) {
+        double disponivel = Screen.getPrimary().getVisualBounds().getWidth() * 0.92;
+        return Math.min(preferida, disponivel);
+    }
+
+    private double alturaDialogo(double preferida) {
+        double disponivel = Screen.getPrimary().getVisualBounds().getHeight() * 0.85;
+        return Math.min(preferida, disponivel);
     }
 
     private int proximoIdFormula() {
-        return formulas.stream()
-                .mapToInt(Formula::getId)
-                .max()
-                .orElse(0) + 1;
+        return formulas.stream().mapToInt(Formula::getId).max().orElse(0) + 1;
     }
 
     private void gerenciarFormulas() {
@@ -827,7 +580,8 @@ public class EstoqueCafeApp extends Application {
 
         VBox conteudo = new VBox(10);
         conteudo.setPadding(new Insets(20));
-        conteudo.setPrefSize(600, 400);
+        conteudo.setPrefWidth(larguraDialogo(600));
+        conteudo.setPrefHeight(alturaDialogo(400));
 
         ObservableList<Formula> listaFormulas = FXCollections.observableArrayList(formulas);
         TableView<Formula> tabelaFormulas = new TableView<>(listaFormulas);
@@ -855,6 +609,7 @@ public class EstoqueCafeApp extends Application {
                 editar.setOnAction(e -> {
                     Formula formula = this.getTableView().getItems().get(this.getIndex());
                     abrirDialogoFormula(formula);
+                    listaFormulas.setAll(formulas);
                 });
                 aplicar.setOnAction(e -> {
                     Formula formula = this.getTableView().getItems().get(this.getIndex());
@@ -863,8 +618,9 @@ public class EstoqueCafeApp extends Application {
                 remover.setOnAction(e -> {
                     int index = this.getIndex();
                     if (index >= 0 && index < this.getTableView().getItems().size()) {
-                        this.getTableView().getItems().remove(index);
-                        formulas.remove(index);
+                        Formula f = this.getTableView().getItems().get(index);
+                        formulas.remove(f);
+                        listaFormulas.setAll(formulas);
                         salvarFormulas();
                     }
                 });
@@ -902,11 +658,9 @@ public class EstoqueCafeApp extends Application {
         fechar.setOnAction(e -> dialogo.setResult(ButtonType.CLOSE));
 
         botoes.getChildren().addAll(novaFormula, fechar);
-
         conteudo.getChildren().addAll(tabelaFormulas, botoes);
         dialogo.getDialogPane().setContent(conteudo);
-        dialogo.getDialogPane().setPrefSize(600, 400);
-
+        dialogo.getDialogPane().setPrefSize(larguraDialogo(600), alturaDialogo(400));
         dialogo.showAndWait();
     }
 
@@ -919,22 +673,19 @@ public class EstoqueCafeApp extends Application {
         TextField nomeFormula = new TextField();
         nomeFormula.setPromptText("Nome da fórmula (ex: Preparação A)");
         nomeFormula.setStyle("-fx-font-size: 12px; -fx-padding: 8px;");
-        if (editando) {
-            nomeFormula.setText(formulaExistente.getNome());
-        }
+        if (editando) nomeFormula.setText(formulaExistente.getNome());
 
         VBox conteudo = new VBox(10);
         conteudo.setPadding(new Insets(20));
-        conteudo.setPrefSize(700, 500);
+        conteudo.setPrefWidth(larguraDialogo(700));
+        conteudo.setPrefHeight(alturaDialogo(500));
 
         Label labelNome = new Label("Nome da Fórmula:");
         labelNome.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
         conteudo.getChildren().addAll(labelNome, nomeFormula);
 
         ObservableList<IngredienteFormula> listaIngredientes = FXCollections.observableArrayList();
-        if (editando) {
-            listaIngredientes.setAll(formulaExistente.getIngredientes());
-        }
+        if (editando) listaIngredientes.setAll(formulaExistente.getIngredientes());
 
         TableView<IngredienteFormula> tabelaIngredientes = new TableView<>(listaIngredientes);
         tabelaIngredientes.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -981,14 +732,14 @@ public class EstoqueCafeApp extends Application {
             @Override
             protected void updateItem(Produto item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty ? "" : String.format("%s (%.2f L)", item.getNome(), item.getQuantidade()));
+                setText(empty || item == null ? "" : String.format("%s (%.2f L)", item.getNome(), item.getQuantidade()));
             }
         });
         comboProdutos.setButtonCell(new ListCell<Produto>() {
             @Override
             protected void updateItem(Produto item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty ? "Selecione um produto..." : String.format("%s (%.2f L)", item.getNome(), item.getQuantidade()));
+                setText(empty || item == null ? "Selecione um produto..." : String.format("%s (%.2f L)", item.getNome(), item.getQuantidade()));
             }
         });
 
@@ -1002,17 +753,17 @@ public class EstoqueCafeApp extends Application {
         addBtn.setOnAction(e -> {
             Produto prod = comboProdutos.getValue();
             String qtdText = qtdIngrediente.getText().trim();
-            
+
             if (prod == null) {
                 mostrarErro("Selecione um produto");
                 return;
             }
-            
+
             if (qtdText.isEmpty()) {
                 mostrarErro("Informe a quantidade");
                 return;
             }
-            
+
             try {
                 double qtd = converterDouble(qtdText);
                 if (qtd <= 0) {
@@ -1039,7 +790,7 @@ public class EstoqueCafeApp extends Application {
 
         Label labelIngredientes = new Label("Ingredientes:");
         labelIngredientes.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
-        
+
         conteudo.getChildren().addAll(
                 labelIngredientes,
                 tabelaIngredientes,
@@ -1049,15 +800,17 @@ public class EstoqueCafeApp extends Application {
         ButtonType confirmar = new ButtonType("Salvar", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelar = new ButtonType("Cancelar", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-        dialogo.getDialogPane().setContent(conteudo);
+        ScrollPane rolagemConteudo = new ScrollPane(conteudo);
+        rolagemConteudo.setFitToWidth(true);
+        dialogo.getDialogPane().setContent(rolagemConteudo);
         dialogo.getDialogPane().getButtonTypes().setAll(confirmar, cancelar);
-        dialogo.getDialogPane().setPrefSize(700, 500);
+        dialogo.getDialogPane().setPrefSize(larguraDialogo(700), alturaDialogo(500));
 
         Optional<ButtonType> resultado = dialogo.showAndWait();
 
         if (resultado.isPresent() && resultado.get() == confirmar) {
             String nome = nomeFormula.getText().trim();
-            
+
             if (nome.isEmpty()) {
                 mostrarErro("Informe o nome da fórmula");
                 return;
@@ -1120,25 +873,19 @@ public class EstoqueCafeApp extends Application {
             if (sucesso) {
                 salvarEstoque();
                 final int quantidadeAplicada = contador[0];
-                
-                Platform.runLater(() -> {
-                    tabela.refresh();
-                    atualizarTabela();
-                    mostrarMensagem("Fórmula aplicada com sucesso!\n" + quantidadeAplicada + " ingrediente(s) descontado(s)");
-                });
+                tabela.refresh();
+                atualizarTabela();
+                mostrarMensagem("Fórmula aplicada com sucesso!\n" + quantidadeAplicada + " ingrediente(s) descontado(s)");
             } else {
-                Platform.runLater(() -> {
-                    tabela.refresh();
-                    mostrarErro("Erro ao aplicar fórmula:\n" + erros.toString());
-                });
+                tabela.refresh();
+                mostrarErro("Erro ao aplicar fórmula:\n" + erros);
             }
         }
     }
 
     private void salvarFormulas() {
-        try (ObjectOutputStream saida =
-                     new ObjectOutputStream(
-                             new FileOutputStream(ARQUIVO_FORMULAS))) {
+        try (ObjectOutputStream saida = new ObjectOutputStream(
+                new FileOutputStream(arquivoDados(ARQUIVO_FORMULAS)))) {
             saida.writeObject(new ArrayList<>(formulas));
         } catch (IOException erro) {
             mostrarErro("Erro ao salvar as fórmulas.");
@@ -1147,21 +894,13 @@ public class EstoqueCafeApp extends Application {
 
     @SuppressWarnings("unchecked")
     private void carregarFormulas() {
-        File arquivo = new File(ARQUIVO_FORMULAS);
+        File arquivo = arquivoDados(ARQUIVO_FORMULAS);
+        if (!arquivo.exists()) return;
 
-        if (!arquivo.exists()) {
-            return;
-        }
-
-        try (ObjectInputStream entrada =
-                     new ObjectInputStream(
-                             new FileInputStream(arquivo))) {
-
-            List<Formula> dados =
-                    (List<Formula>) entrada.readObject();
-
+        try (ObjectInputStream entrada = new ObjectInputStream(
+                new FileInputStream(arquivo))) {
+            List<Formula> dados = (List<Formula>) entrada.readObject();
             formulas.setAll(dados);
-
         } catch (IOException | ClassNotFoundException erro) {
             mostrarErro("Não foi possível carregar as fórmulas salvas.");
         }
